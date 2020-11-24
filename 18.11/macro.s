@@ -5,7 +5,7 @@
 .endm
 
 .macro mult_reg reg1 reg2
-     mov \reg1, %ecx
-     mov \reg2, %eax
-     mul %ecx
+    mov \reg1, %ecx
+    mov \reg2, %eax
+    mul %ecx
  .endm
