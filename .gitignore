@@ -50,3 +50,12 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# binaries
+bin/
+*.elf
+
+# peda and gdb files
+.gdb_*
+peda-session-result.txt
+
