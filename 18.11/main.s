@@ -4,13 +4,14 @@
 .globl _start
 .data
     format:         .asciz "%i\n"
-    error_line:     .asciz "Too less atguments\n"
+    less_error_line:     .asciz "Too less arguments\n"
+    much_error_line:     .asciz "Too much arguments\n"
 
 .text
 _start:
     mov (%rsp), %ecx
-    cmp $2, %ecx
-    jle _exit_with_error
+    cmp $3, %ecx
+    jne _exit_with_error
 
     mov 16(%rsp), %rdi      # take first param
     call parse_int          # parse, args[0] -> rax
@@ -32,6 +33,16 @@ _exit:
 _exit_with_error:
     mov %rax, %rsi
     mov $0, %rax
-    mov $error_line, %rdi
+
+    mov (%rsp), %ecx
+    cmp $3, %ecx
+    jg _much_arguments
+    mov $less_error_line, %rdi
+
+_exit_ret:
     call printf
     jmp _exit
+
+_much_arguments:
+    mov $much_error_line, %rdi
+    jmp _exit_ret

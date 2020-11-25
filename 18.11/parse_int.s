@@ -4,10 +4,18 @@
 parse_int:
     push %rcx
     push %rdx
+
     xor %rbx, %rbx
     xor %rcx, %rcx
     xor %rdx, %rdx
     xor %rax, %rax
+    mov $1, %r9
+
+    mov (%rbx, %rdi), %ax
+    cmp $'-', %al
+    jne _loop
+    mov $-1, %r9
+    inc %rbx
     _loop:
         mov (%rbx, %rdi), %ax      # move in rax char on rdi position
 
@@ -31,6 +39,7 @@ parse_int:
 
     _rd_ex:
         mov %rdx, %rax
+        mul %r9
 
     pop %rdx
     pop %rcx
