@@ -1,6 +1,8 @@
 .data
-.align  16
+.align 4
 _pi:    .long   0
+_n:     .long   0
+_result: .long   0
 
 .globl get_number
 
@@ -9,21 +11,16 @@ _pi:    .long   0
 get_number:
     finit
     fldpi
-    fstl _pi
-
-    vmovss _pi, %xmm0
-    ret
-
-#    movss _pi, %xmm1
-#    sqrtss %xmm1, %xmm1
+    fsts _pi
+    movss _pi, %xmm0
+#    fsqrt
+#    fistl _result
+#    mov $1, %eax
 #
-#    cvtsi2ss %edi, %xmm0
-#    cvtsi2ss %esi, %xmm2
-#    sqrtss %xmm0, %xmm0
-#1:
-#    comiss %xmm0, %xmm2
-#    jb 2f
-#    mulps %xmm1, %xmm0
-#    jmp 1b
-#2:
-#    ret
+#    movss _pi, %xmm0
+#    mov $5, %eax
+#    movss %eax, %xmm1
+
+#    cvtsi2ss %xmm1, %xmm2
+#    cvtsi2sd %xmm1, %xmm3
+    ret
