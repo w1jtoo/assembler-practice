@@ -47,21 +47,25 @@ extern float to_radian(int angle);
 extern char* int_to_str(int number);
 extern char* float_to_str(float number);
 
+long int factorial(long int n) { 
+    if (n <= 2)
+        return n;
+    return n * factorial(n-1);
+}
+
 int main(void) {
     printf("Running tests...\n");
     printf("Factorial function tests\n");
-    ASSERT_EQ(FactorialOf0, fact(0), 1);
-    ASSERT_EQ(FactorialOf1, fact(1), 1);
-    ASSERT_EQ(FactorialOf2, fact(2), 2);
-    ASSERT_EQ(FactorialOf3, fact(3), 6);
-    ASSERT_EQ(FactorialOf4, fact(4), 24);
-    ASSERT_EQ(FactorialOf5, fact(5), 120);
-    ASSERT_EQ(FactorialOf6, fact(6), 720);
+
+    for (int i = 1; i < 30; i++) {
+        ASSERT_EQ(ConpareToCRealization, factorial(i), fact(i));
+    }
 
     printf("\nPower function tests\n");
     ASSERT_FEQ(ZeroPower, 1, fpow(1.f, 0));
     ASSERT_FEQ(BigExp, 729, fpow(3.f, 6));
     ASSERT_FEQ(fpowEqCMuptiply, 3.14f * 3.14f, fpow(3.14f, 2));
+    ASSERT_FEQ(BigExpWithLittleBase, 0, fpow(EPSILON, 10));
 
     printf("\nSin function tests\n");
     ASSERT_FEQ(ZeroSin, 0, ssin(0.f));
@@ -69,9 +73,9 @@ int main(void) {
     printf("\nSin function tests -- compare with math.h sinf\n");
 
     float p = 0.f;
-    while (p <= 1.f) {
+    while (fabs(p - (PI / 2)) > 0.1f) {
         ASSERT_FEQ(CompareWithStdSin, sinf((double) p), ssin(p));
-         p += 0.05f;
+        p += 0.05f;
     }
 
     printf("\nGet rad from degrees from function tests\n");
@@ -80,6 +84,7 @@ int main(void) {
     ASSERT_FEQ(45DegreesEqPi/4Test, PI / 4, to_radian(45));
     ASSERT_FEQ(30DegreesEqPi/6Test, PI / 6, to_radian(30));
     ASSERT_FEQ(1DegreeEqPi/180Test, PI / 180, to_radian(1));
+    ASSERT_FEQ(CloseTo90Degrees/2Test, 88 * PI / 180, to_radian(88));
 
     printf("\nCreate string from int function tests\n");
     ASSERT_SEQ(ZeroIntTest, "0", int_to_str(0));

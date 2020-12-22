@@ -6,15 +6,19 @@
 .text
 
 # calculate factorial of positive interger number
-#   rdi -> rax
 # rdi -- number
+#   rdi -> rax
 # rax -- result
 fact:
     push    %rdi
     push    %rcx
     push    %rdx
 
+    cmp     $23, %rdi
+    jge     5f
+
     xor     %rcx, %rcx
+    xor     %rdx, %rdx
     mov     %rdi, %rax              # result = arg1
 
     1:
@@ -22,7 +26,10 @@ fact:
         jz      2f                  # if arg non zero result *= arg
         js      3f                  # else result = 1
 
-        mul     %rdi
+        imul    %rdi
+        cmp     $0, %rdx            # if rdi has overflow return max value
+        jne     5f
+
         inc     %rcx
 
         jmp     1b
@@ -30,22 +37,27 @@ fact:
         inc     %rax
 
     2:
-
         pop     %rdx
         pop     %rcx
         pop     %rdi
         ret
 
+    5:
+        mov     $2147483647, %rax
+        jmp     2b
+
+
 # calculate sin of float number using taylor series
-#   xmm0 -> xmm0
 # xmm0 -- number
+#   xmm0 -> xmm0, rcx
 # xmm0 -- result
+# rcx -- count of cycles
 .text
 ssin:
     push    %rax
-    push    %rcx                    # iteration counter n
     push    %rdi                    # iteration scalar k: 3, 5, 7 etc.
     push    %r9                     # uses for sign flipping
+                                    # and rcx is iteration counter n
 
     # ------------------- initialize constants ---------------------#
     mov     $0x80000000, %r9        #  = 2 ^ 31
@@ -71,7 +83,7 @@ ssin:
 
     # calculate delta := ((-1) ^ n * x ^ k) / (k!)
     call    fpow                    # delta = x ^ k
-    call    fact                    # %rax   = k!
+    call    fact                    # rax = k!
     movq    %rax,  %xmm3
     cvtdq2ps %xmm3, %xmm3
 
@@ -83,6 +95,9 @@ ssin:
 2:
     addps   %xmm0, %xmm1            # result += delta
 
+    cmp     $8, %rcx                # TODO: fix bug with
+    je      3f                      # wrong asnwer on rcx > 8
+
     comiss  %xmm4, %xmm1
     jne      1b
 3:
@@ -90,19 +105,20 @@ ssin:
 
     pop     %r9
     pop     %rdi
-    pop     %rcx
     pop     %rax
 
     ret
 
 # calculate positive integer power of float number
-#   xmm0, rdi -> xmm0
 # xmm0 -- base
 # rdi  -- exponent
-.data
-.align 4
-_one:   .long 0
-_store: .long 0
+#   xmm0, rdi -> xmm0
+# xmm0 --powered number
+.bss
+    .align 4
+        _one:   .long 0
+    .align 4
+        _store: .long 0
 
 .text
 fpow:
@@ -120,21 +136,21 @@ fpow:
             jmp     1b
         2:
 
-        movss   %xmm1, %xmm0
+        movss       %xmm1, %xmm0
 
-        movss   _store, %xmm1
+        movss       _store, %xmm1
         pop         %rdi
         ret
 
 
 # converts degrees to radian value
 # radian = pi * degrees / 180
-#   rdi -> xmm0
 # rdi  -- number
+#   rdi -> xmm0
 # xmm0 -- result
-.data
-.align 4
-_pi:    .long 0
+.bss
+    .align 4
+        _pi:    .long 0
 
 .text
 to_radian:

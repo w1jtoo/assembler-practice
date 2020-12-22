@@ -28,6 +28,11 @@ insert_str_value:
 .Lendl:
     ret
 
+# increments pointer while sees zero bytes
+#   !DO NOT SAVES CONTEXT!
+# rax -- pointer to string
+#   rax -> rax
+# rax -- pointer to string with skipped zero bytes
 strip:
 .Lcheck_loop:                       # skip empty bytes
     inc     %rax                            # do
@@ -39,8 +44,9 @@ strip:
 
 
 # rdi -- number
-#   rdi -> rax
-# rax -- pointer to string of number with zero on the end
+#   rdi -> rax, rcx                  |TODO:
+# rax -- pointer to string of number | with zero on the end|
+# rcx -- lenght of string
 .bss
 .Lnumber_buffer:
     .rept 19
@@ -50,9 +56,8 @@ number_bufferl = . - .Lnumber_buffer
 
 .text
 int_to_str:
-    push    %rcx        # save context
-    push    %rbx        # TODO: write macro
-    push    %rdx
+    push    %rbx        # save context
+    push    %rdx        # TODO: write macro
     push    %r9
 
     mov     $(number_bufferl - 1), %rcx
@@ -64,10 +69,15 @@ int_to_str:
     mov     $.Lnumber_buffer, %rax          # result is ptr to number
     call    strip                           # skip zero bytes
 
+    mov     %rax, %r9               # culc skipped symbols
+    mov     $.Lnumber_buffer, %rcx
+    sub     %rcx, %r9               # r9 = rax - .Lresult
+    mov     $number_bufferl, %rcx
+    sub     %r9, %rcx               # culc count of bytes in result string
+
     pop     %r9
     pop     %rdx
     pop     %rbx
-    pop     %rcx
 
     ret
 
@@ -128,15 +138,14 @@ float_to_str:
 
     # now there are float_part and int part
     #   so just construct result string as "<int_part>.<float_part>"
-    push    %rcx        # TODO: save context using macro
-    push    %rbx
+    push    %rbx        # TODO: save context using macro
     push    %rdx
     push    %r9
 
     mov     $(20 - 1), %rcx         # insert int part to fisrt 20 bytes
     mov     $.Lresult, %r9
     mov     .Lint_part, %eax
-    call insert_str_value
+    call    insert_str_value
 
     mov     $20, %rcx               # insert dot char
     movb    $'.', (%rcx, %r9)
@@ -144,16 +153,19 @@ float_to_str:
     mov     $(resultl-1), %rcx      # insert float part to last 9 bytes
     xor     %rax, %rax
     mov     .Lfloat_part, %eax
-    call insert_str_value
+    call    insert_str_value
 
     mov     $.Lresult, %rax         # ptr to result str now in rax
 
     call    strip                   # skip empty bytes
 
+    mov     %rax, %r9           # culc skipped symbols
+    mov     $.Lresult, %rcx
+    sub     %rcx, %r9           # r9 = rax - .Lresult
+    mov     $resultl, %rcx
+    sub     %r9, %rcx           # culc count of bytes in result string
+
     pop     %r9
     pop     %rdx
     pop     %rbx
-    pop     %rcx
-
     ret
-
