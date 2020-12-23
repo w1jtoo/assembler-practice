@@ -25,7 +25,7 @@ error_promtl        = . - error_promt
 error_bad_degrees:  .byte 0
                     .byte 0
 error_bad_degree:   .ascii " greater than 90. Angle should be"
-                    .ascii " less than 90."
+                    .ascii " less than 90.\n"
 error_bad_degreel   = . - error_bad_degrees
 
 new_line:           .byte ENDL
